@@ -110,7 +110,7 @@ def deck_divider():
 
         s.penUp()
         s.moveTo(s.getPosition() + Vector(o.h, o.d))
-        s.setOrientation(Vector(0, 1))
+        s.setOrientation(Vector(0, 1))  # down
         s.penDown()
 
     s.finish()
@@ -123,32 +123,38 @@ def deck_divider():
 def deck_bottom():
     global o, a
 
-    WIDTH = (o.n + 1) * o.m + o.n * o.w
-    HEIGHT = 2 * o.m + o.h
+    WIDTH = (o.n + 1) * o.m + (o.n * o.w)
+    HEIGHT = (2 * o.m) + o.h
     svg = pysvg.structure.svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
     svg.set_viewBox('0 0 %s %s' % (WIDTH, HEIGHT))
 
-    # Calculate the notch width
-    width = o.w - (2 * 5.0)
+    # The Y-position of the divider notch holes
+    notch_y = o.m + (o.h - TAB) / 2
 
     s = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
     s.moveTo(Vector(0, 0))
     s.penDown()
 
     # Back
-    # Fixme: needs notch holes for the back
-    s.forward((o.n + 1) * o.m + o.n * o.w)
+    for i in range(0, o.n):
+        pos = s.getPosition()
+        s.forward(o.m + (o.w / 2) - (TAB / 2))
+        notchr(s, o.m, TAB)
+        s.moveTo(pos + Vector(o.w + o.m, 0))
+    s.moveTo(Vector(WIDTH, pos.y))
     s.right(90)
 
     # Right side
-    # Fixme: needs notch holes for the dividers
-    s.forward(2 * o.m + o.h)
+    s.forward(notch_y)
+    notchr(s, o.m, TAB)
+    s.moveTo(Vector(WIDTH, HEIGHT))
     s.right(90)
 
     #       _____________
     #      |             |
     #    __|             |__
     # __|                   |__
+    width = o.w - (2 * 5.0)     # finger notch width
     for i in range(0, o.n):
         s.forward(o.m)
         s.right(90)
@@ -163,11 +169,32 @@ def deck_bottom():
         s.forward(o.m)
         s.right(90)
     s.forward(o.m)
+    s.right(90)
 
     # Left side
-    # Fixme: needs notch holes for the dividers
-    s.right(90)
-    s.forward(2 * o.m + o.h)
+    # Right side
+    s.penUp()
+    s.moveTo(Vector(0, 0))
+    s.setOrientation(Vector(0, 1))  # down
+    s.penDown()
+    s.forward(notch_y)
+    notchl(s, o.m, TAB)
+    s.moveTo(Vector(0, HEIGHT))
+
+    # Notch holes for dividers
+    s.penUp()
+    for i in range(1, o.n):
+        s.moveTo(Vector((o.m + o.w) * i, notch_y))
+        s.setOrientation(Vector(1, 0))  # right
+        s.penDown()
+        s.forward(o.m)
+        s.right(90)
+        s.forward(TAB)
+        s.right(90)
+        s.forward(o.m)
+        s.right(90)
+        s.forward(TAB)
+        s.penUp()
 
     s.finish()
     print s.getXML()
@@ -203,7 +230,6 @@ def deck_back():
     s.right(90)
 
     # Bottom
-    # Fixme: notches are backwards
     for i in range(0, o.n):
         pos = s.getPosition()
         s.forward(o.m + (o.w / 2) - (TAB / 2))
@@ -219,6 +245,22 @@ def deck_back():
         s.forward(vspace)
         notchr(s, o.m, TAB)
     s.forward(vspace)
+
+    # Notch holes for dividers
+    notch_y = (o.d - TAB) / 2
+    s.penUp()
+    for i in range(1, o.n):
+        s.moveTo(Vector((o.m + o.w) * i, notch_y))
+        s.setOrientation(Vector(1, 0))  # right
+        s.penDown()
+        s.forward(o.m)
+        s.right(90)
+        s.forward(TAB)
+        s.right(90)
+        s.forward(o.m)
+        s.right(90)
+        s.forward(TAB)
+        s.penUp()
 
     s.finish()
     print s.getXML()
