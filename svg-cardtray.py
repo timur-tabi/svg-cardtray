@@ -84,11 +84,15 @@ def deck_divider():
     s.penDown()
 
     # (0, 0) is the upper-left corner
+    # Fixme: since we need notches on the bottom, we can't share the
+    # edges
     s.forward(o.h)
     s.right(90)
 
     # For N decks, we need N+1 dividers
     for i in range(0, o.n + 1):
+        # Fixme: one notch only, and it must be the same position as the
+        # front and back notch holes
         s.forward(vspace)
         notchl(s, o.m, TAB)
         if tabs > 1:
@@ -108,6 +112,8 @@ def deck_divider():
             notchl(s, o.m, TAB)
         s.forward(vspace)
 
+        # Fixme: since we need notches on the bottom, we can't share the
+        # edges
         s.penUp()
         s.moveTo(s.getPosition() + Vector(o.h, o.d))
         s.setOrientation(Vector(0, 1))  # down
@@ -282,17 +288,20 @@ def deck_front():
     s.moveTo(Vector(0, 0))
     s.penDown()
 
-    s.forward(o.m + 5)
+    # Left piece
+    s.forward(o.m + 5)    # Fixme: '5' should be a variable
     s.right(90)
     s.forward(o.d + o.m)
     s.right(90)
-    s.forward(5)
+    s.forward(5)    # Fixme: '5' should be a variable
     s.right(90)
     s.forward(o.m)
     s.left(90)
     s.forward(o.m)
     s.right(90)
 
+    # Fixme: one notch only, and it must be the same position as the
+    # front and back notch holes
     s.forward(vspace)
     notchr(s, o.m, TAB)
     if tabs > 1:
@@ -301,28 +310,31 @@ def deck_front():
     s.forward(vspace)
 
     s.penUp()
-    s.moveTo(Vector(o.m + 5, 0))
+    s.moveTo(Vector(o.m + 5, 0))    # Fixme: '5' should be a variable
     s.setOrientation(Vector(1, 0))
     s.penDown()
 
     # fixme: needs notch holes inside front panels
     for i in range(0, o.n - 1):
-        s.forward(2 * 5 + o.m)
+        s.forward(2 * 5 + o.m)    # Fixme: '5' should be a variable
         s.right(90)
         s.forward(o.d + o.m)
         s.right(90)
-        s.forward(5)
+        s.forward(5)    # Fixme: '5' should be a variable
         notchr(s, o.m, o.m)
         s.forward(5)
 
         s.penUp()
-        s.moveTo(s.getPosition() + Vector(2 * 5 + o.m, -(o.d + o.m)))
+        s.moveTo(s.getPosition() + Vector(2 * 5 + o.m, -(o.d + o.m)))    # Fixme: '5' should be a variable
         s.setOrientation(Vector(1, 0))
         s.penDown()
 
-    s.forward(o.m + 5)
+    # Right piece
+    s.forward(o.m + 5)    # Fixme: '5' should be a variable
     s.right(90)
 
+    # Fixme: one notch only, and it must be the same position as the
+    # front and back notch holes
     s.forward(vspace)
     notchr(s, o.m, TAB)
     if tabs > 1:
@@ -335,13 +347,13 @@ def deck_front():
     s.left(90)
     s.forward(o.m)
     s.right(90)
-    s.forward(5)
+    s.forward(5)        # Fixme: '5' should be a variable
 
     s.finish()
     print s.getXML()
     s = s.addTurtlePathToSVG(svg)
 
-    print 'Back size: %smm * %smm' % (WIDTH, HEIGHT)
+    print 'Front size: %smm * %smm' % (WIDTH, HEIGHT)
     svg.save('/Users/timur/Windows Share/LaserCutter/tray_front.svg')
 
 parser = OptionParser(usage="usage: %prog [options]")
