@@ -53,28 +53,37 @@ TAB = 10
 # A notch (rectangle with only three sides) starting from (x,y)
 def notchl(turtle, width, height):
     turtle.left(90)
-    turtle.forward(width);
+    turtle.forward(width)
     turtle.right(90)
-    turtle.forward(height);
+    turtle.forward(height)
     turtle.right(90)
-    turtle.forward(width);
+    turtle.forward(width)
     turtle.left(90)
 
 # A notch (rectangle with only three sides) starting from (x,y)
 def notchr(turtle, width, height):
     turtle.right(90)
-    turtle.forward(width);
+    turtle.forward(width)
     turtle.left(90)
-    turtle.forward(height);
+    turtle.forward(height)
     turtle.left(90)
-    turtle.forward(width);
+    turtle.forward(width)
     turtle.right(90)
 
+def rectangle(turtle, length, width):
+    turtle.forward(length)
+    turtle.right(90)
+    turtle.forward(width)
+    turtle.right(90)
+    turtle.forward(length)
+    turtle.right(90)
+    turtle.forward(width)
+
 def deck_divider():
-    global o, a, vspace
+    global o, a, notch_top, notch_bottom
 
     WIDTH = 2 * o.m + o.h
-    HEIGHT = o.n * o.d
+    HEIGHT = (o.n + 1) * (o.d + o.n + 5)
 
     svg = pysvg.structure.svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
     svg.set_viewBox('0 0 %s %s' % (WIDTH, HEIGHT))
@@ -83,40 +92,30 @@ def deck_divider():
     s.moveTo(Vector(o.m, 0))
     s.penDown()
 
-    # (0, 0) is the upper-left corner
-    # Fixme: since we need notches on the bottom, we can't share the
-    # edges
-    s.forward(o.h)
-    s.right(90)
-
     # For N decks, we need N+1 dividers
     for i in range(0, o.n + 1):
-        # Fixme: one notch only, and it must be the same position as the
-        # front and back notch holes
-        s.forward(vspace)
-        notchl(s, o.m, TAB)
-        if tabs > 1:
-            s.forward(vspace)
-            notchl(s, o.m, TAB)
-        s.forward(vspace)
-
-        # Fixme: needs notches for the bottom
-        s.right(90)
-        s.forward(o.h)
-
-        s.right(90)
-        s.forward(vspace)
-        notchl(s, o.m, TAB)
-        if tabs > 1:
-            s.forward(vspace)
-            notchl(s, o.m, TAB)
-        s.forward(vspace)
-
         # Fixme: since we need notches on the bottom, we can't share the
         # edges
+        s.forward(o.h)
+        s.right(90)
+
+        s.forward(notch_top)
+        notchl(s, o.m, TAB)
+        s.forward(notch_bottom)
+
+        s.right(90)
+        s.forward(notch_front)
+        notchl(s, o.m, TAB)
+        s.forward(notch_back)
+
+        s.right(90)
+        s.forward(notch_bottom)
+        notchl(s, o.m, TAB)
+        s.forward(notch_top)
+
         s.penUp()
-        s.moveTo(s.getPosition() + Vector(o.h, o.d))
-        s.setOrientation(Vector(0, 1))  # down
+        s.moveTo(s.getPosition() + Vector(0, o.d + o.m + 5))    # Fixme: adjust the gap between dividers
+        s.setOrientation(Vector(1, 0))  # right
         s.penDown()
 
     s.finish()
@@ -124,18 +123,16 @@ def deck_divider():
     s=s.addTurtlePathToSVG(svg)
 
     print 'Dividers size: %smm * %smm' % (WIDTH, HEIGHT)
-    svg.save('/Users/timur/Windows Share/LaserCutter/tray_divider.svg')
+    svg.save('tray_divider.svg')
 
 def deck_bottom():
     global o, a
+    global notch_back, notch_front
 
     WIDTH = (o.n + 1) * o.m + (o.n * o.w)
     HEIGHT = (2 * o.m) + o.h
     svg = pysvg.structure.svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
     svg.set_viewBox('0 0 %s %s' % (WIDTH, HEIGHT))
-
-    # The Y-position of the divider notch holes
-    notch_y = o.m + (o.h - TAB) / 2
 
     s = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
     s.moveTo(Vector(0, 0))
@@ -151,26 +148,27 @@ def deck_bottom():
     s.right(90)
 
     # Right side
-    s.forward(notch_y)
+    s.forward(o.m + notch_back)
     notchr(s, o.m, TAB)
-    s.moveTo(Vector(WIDTH, HEIGHT))
+    s.forward(o.m + notch_front)
+#    s.moveTo(Vector(WIDTH, HEIGHT))
     s.right(90)
 
     #       _____________
     #      |             |
     #    __|             |__
     # __|                   |__
-    width = o.w - (2 * 5.0)     # finger notch width
+    width = o.w - (2 * 5.0)     # finger notch width    # Fixme: '5' should be a variable
     for i in range(0, o.n):
         s.forward(o.m)
         s.right(90)
         s.forward(o.m)
         s.left(90)
-        s.forward(5)
+        s.forward(5)    # Fixme: '5' should be a variable
 
         notchr(s, 10, width)
 
-        s.forward(5)
+        s.forward(5)    # Fixme: '5' should be a variable
         s.left(90)
         s.forward(o.m)
         s.right(90)
@@ -178,28 +176,18 @@ def deck_bottom():
     s.right(90)
 
     # Left side
-    # Right side
+    s.forward(o.m + notch_front)
+    notchr(s, o.m, TAB)
+    s.forward(o.m + notch_back)
     s.penUp()
-    s.moveTo(Vector(0, 0))
-    s.setOrientation(Vector(0, 1))  # down
-    s.penDown()
-    s.forward(notch_y)
-    notchl(s, o.m, TAB)
-    s.moveTo(Vector(0, HEIGHT))
 
     # Notch holes for dividers
     s.penUp()
     for i in range(1, o.n):
-        s.moveTo(Vector((o.m + o.w) * i, notch_y))
+        s.moveTo(Vector((o.m + o.w) * i, o.m + notch_back))
         s.setOrientation(Vector(1, 0))  # right
         s.penDown()
-        s.forward(o.m)
-        s.right(90)
-        s.forward(TAB)
-        s.right(90)
-        s.forward(o.m)
-        s.right(90)
-        s.forward(TAB)
+        rectangle(s, o.m, TAB)
         s.penUp()
 
     s.finish()
@@ -207,11 +195,11 @@ def deck_bottom():
     s=s.addTurtlePathToSVG(svg)
 
     print 'Bottom size: %smm * %smm' % (WIDTH, HEIGHT)
-    svg.save('/Users/timur/Windows Share/LaserCutter/tray_bottom.svg')
+    svg.save('tray_bottom.svg')
 
 # Fixme: combine this with the bottom piece
 def deck_back():
-    global o, a, vspace
+    global o, a, notch_top, notch_bottom
 
     WIDTH = (o.n + 1) * o.m + (o.n * o.w)
     HEIGHT = o.d + o.m
@@ -227,12 +215,9 @@ def deck_back():
     s.right(90)
 
     # Right side
-    s.forward(vspace)
+    s.forward(notch_top)
     notchr(s, o.m, TAB)
-    if tabs > 1:
-        s.forward(vspace)
-        notchr(s, o.m, TAB)
-    s.forward(vspace)
+    s.forward(notch_bottom)
     s.right(90)
 
     # Bottom
@@ -245,12 +230,9 @@ def deck_back():
     s.right(90)
 
     # Left side
-    s.forward(vspace)
+    s.forward(notch_bottom)
     notchr(s, o.m, TAB)
-    if tabs > 1:
-        s.forward(vspace)
-        notchr(s, o.m, TAB)
-    s.forward(vspace)
+    s.forward(notch_top)
 
     # Notch holes for dividers
     notch_y = (o.d - TAB) / 2
@@ -273,11 +255,11 @@ def deck_back():
     s=s.addTurtlePathToSVG(svg)
 
     print 'Back size: %smm * %smm' % (WIDTH, HEIGHT)
-    svg.save('/Users/timur/Windows Share/LaserCutter/tray_back.svg')
+    svg.save('tray_back.svg')
 
 def deck_front():
     global o, a
-    global vspace, tabs
+    global notch_top, notch_bottom
 
     WIDTH = (2 * (o.m + 5)) + ((o.n - 1) * (2 * 5 + o.m))
     HEIGHT = o.d + o.m
@@ -299,24 +281,20 @@ def deck_front():
     s.left(90)
     s.forward(o.m)
     s.right(90)
-
-    # Fixme: one notch only, and it must be the same position as the
-    # front and back notch holes
-    s.forward(vspace)
+    s.forward(notch_bottom)
     notchr(s, o.m, TAB)
-    if tabs > 1:
-        s.forward(vspace)
-        notchr(s, o.m, TAB)
-    s.forward(vspace)
+    s.forward(notch_top)
 
+    # Move to upper-left corner of first middle piece
     s.penUp()
     s.moveTo(Vector(o.m + 5, 0))    # Fixme: '5' should be a variable
-    s.setOrientation(Vector(1, 0))
+    s.setOrientation(Vector(1, 0))  # right
     s.penDown()
 
-    # fixme: needs notch holes inside front panels
     for i in range(0, o.n - 1):
+        start_pos = s.getPosition()
         s.forward(2 * 5 + o.m)    # Fixme: '5' should be a variable
+        next_pos = s.getPosition()  # This is where the next divider is drawn
         s.right(90)
         s.forward(o.d + o.m)
         s.right(90)
@@ -324,24 +302,30 @@ def deck_front():
         notchr(s, o.m, o.m)
         s.forward(5)
 
+        # The notch hole for the dividers
         s.penUp()
-        s.moveTo(s.getPosition() + Vector(2 * 5 + o.m, -(o.d + o.m)))    # Fixme: '5' should be a variable
-        s.setOrientation(Vector(1, 0))
+        s.moveTo(start_pos + Vector(5, notch_top))  # Fixme: '5' should be a variable
+        s.setOrientation(Vector(1, 0))  # right
+        s.penDown()
+        s.forward(o.m)
+        s.right(90)
+        s.forward(TAB)
+        s.right(90)
+        s.forward(o.m)
+        s.right(90)
+        s.forward(TAB)
+
+        s.penUp()
+        s.moveTo(next_pos)
+        s.setOrientation(Vector(1, 0))  # right
         s.penDown()
 
     # Right piece
     s.forward(o.m + 5)    # Fixme: '5' should be a variable
     s.right(90)
-
-    # Fixme: one notch only, and it must be the same position as the
-    # front and back notch holes
-    s.forward(vspace)
+    s.forward(notch_top)
     notchr(s, o.m, TAB)
-    if tabs > 1:
-        s.forward(vspace)
-        notchr(s, o.m, TAB)
-    s.forward(vspace)
-
+    s.forward(notch_bottom)
     s.right(90)
     s.forward(o.m)
     s.left(90)
@@ -354,28 +338,30 @@ def deck_front():
     s = s.addTurtlePathToSVG(svg)
 
     print 'Front size: %smm * %smm' % (WIDTH, HEIGHT)
-    svg.save('/Users/timur/Windows Share/LaserCutter/tray_front.svg')
+    svg.save('tray_front.svg')
 
+# Defaults for Dominion Victory cards
 parser = OptionParser(usage="usage: %prog [options]")
-parser.add_option("-H", dest="h", help="card height", type="float", default = 50)
-parser.add_option("-W", dest="w", help="card width", type="float", default = 30)
-parser.add_option("-d", dest="d", help="deck thickness", type="float", default = 30)
-parser.add_option("-n", dest="n", help="number of decks", type="int", default = 4)
+parser.add_option("-H", dest="h", help="card height", type="float", default = 92)
+parser.add_option("-W", dest="w", help="card width", type="float", default = 60)
+parser.add_option("-d", dest="d", help="deck thickness", type="float", default = 20)
+parser.add_option("-n", dest="n", help="number of decks", type="int", default = 5)
 parser.add_option("-m", dest="m", help="material thickness (default=%default)", type="int", default = 3)
 
 (o, a) = parser.parse_args()
 
-# Calculate the number of tabs.  Fixme: this should be smarter
+# Fixme: we should be smarter about limits
 if o.d < 20:
     o.d = 20
 
-if o.d < 50:
-    tabs = 1
-else:
-    tabs = 2
+# Calculate the space above and below the notches on the ends of the dividers
+notch_top = (o.d - TAB) / 2
+notch_bottom = o.d - (notch_top + TAB)
 
-# The space between vertical tabs
-vspace = (o.d - (TAB * tabs)) / (1.0 + tabs)
+# Calculate the space behind and in front of the notches on the bottoms of
+# the dividers
+notch_back = (o.h - TAB) / 2
+notch_front = o.h - (notch_back + TAB)
 
 deck_divider()
 deck_bottom()
