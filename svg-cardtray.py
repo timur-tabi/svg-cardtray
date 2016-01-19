@@ -32,10 +32,7 @@
 
 import sys
 import os
-import pysvg.builders
 import pysvg.structure
-import pysvg.style
-import pysvg.shape
 from pysvg.turtle import Turtle, Vector
 from optparse import OptionParser
 
@@ -85,7 +82,7 @@ def deck_divider():
     WIDTH = 2 * o.m + o.h
     HEIGHT = (o.n + 1) * (o.d + o.n + 5)
 
-    svg = pysvg.structure.svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
+    svg = pysvg.structure.Svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
     svg.set_viewBox('0 0 %s %s' % (WIDTH, HEIGHT))
 
     s = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
@@ -131,7 +128,7 @@ def deck_bottom():
 
     WIDTH = (o.n + 1) * o.m + (o.n * o.w)
     HEIGHT = (2 * o.m) + o.h
-    svg = pysvg.structure.svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
+    svg = pysvg.structure.Svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
     svg.set_viewBox('0 0 %s %s' % (WIDTH, HEIGHT))
 
     s = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
@@ -203,7 +200,7 @@ def deck_back():
 
     WIDTH = (o.n + 1) * o.m + (o.n * o.w)
     HEIGHT = o.d + o.m
-    svg = pysvg.structure.svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
+    svg = pysvg.structure.Svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
     svg.set_viewBox('0 0 %s %s' % (WIDTH, HEIGHT))
 
     s = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
@@ -263,7 +260,7 @@ def deck_front():
 
     WIDTH = (2 * (o.m + 5)) + ((o.n - 1) * (2 * 5 + o.m))
     HEIGHT = o.d + o.m
-    svg = pysvg.structure.svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
+    svg = pysvg.structure.Svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
     svg.set_viewBox('0 0 %s %s' % (WIDTH, HEIGHT))
 
     s = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
