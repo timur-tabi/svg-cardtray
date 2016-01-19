@@ -5,7 +5,9 @@
 
 # Note that CorelDraw's SVG import feature assumes a page size of 8.5 x 11.
 
-# This program requires pysvg (http://codeboje.de/pysvg/)
+# This program requires pysvg (http://codeboje.de/pysvg/).  Only version
+# 0.2.2b is supported, which can be downloaded from
+# https://pypi.python.org/pypi/pysvg
 
 # Copyright 2013-2014 Timur Tabi
 #
@@ -339,11 +341,16 @@ def deck_front():
 
 # Defaults for Dominion Victory cards
 parser = OptionParser(usage="usage: %prog [options]")
-parser.add_option("-H", dest="h", help="card height", type="float", default = 92)
-parser.add_option("-W", dest="w", help="card width", type="float", default = 60)
-parser.add_option("-d", dest="d", help="deck thickness", type="float", default = 20)
-parser.add_option("-n", dest="n", help="number of decks", type="int", default = 5)
-parser.add_option("-m", dest="m", help="material thickness (default=%default)", type="int", default = 3)
+parser.add_option("-H", dest="h", help="card height in millimeters (default=%default)",
+                  type="float", default = 92)
+parser.add_option("-W", dest="w", help="card width in millimeters (default=%default)",
+                  type="float", default = 60)
+parser.add_option("-d", dest="d", help="deck thickness in millimeters (default=%default)",
+                  type="float", default = 20)
+parser.add_option("-n", dest="n", help="number of decks (default=%default)",
+                  type="int", default = 5)
+parser.add_option("-m", dest="m", help="material thickness (default=%default)",
+                  type="int", default = 3)
 
 (o, a) = parser.parse_args()
 
