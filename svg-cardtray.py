@@ -350,7 +350,7 @@ parser.add_option("-d", dest="d", help="deck thickness in millimeters (default=%
 parser.add_option("-n", dest="n", help="number of decks (default=%default)",
                   type="int", default = 5)
 parser.add_option("-m", dest="m", help="material thickness (default=%default)",
-                  type="int", default = 3)
+                  type="float", default = 3)
 
 (o, a) = parser.parse_args()
 
