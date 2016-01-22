@@ -6,7 +6,7 @@
 # Note that CorelDraw's SVG import feature assumes a page size of 8.5 x 11.
 
 # This program requires pysvg (http://codeboje.de/pysvg/).  Only version
-# 0.2.2b is supported, which can be downloaded from
+# 0.2.2 is supported, which can be downloaded from
 # https://pypi.python.org/pypi/pysvg
 
 # Copyright 2013-2014 Timur Tabi
