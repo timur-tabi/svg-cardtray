@@ -38,10 +38,6 @@ import pysvg.structure
 from pysvg.turtle import Turtle, Vector
 from optparse import OptionParser
 
-# P1 acrylic size at Ponoko.com
-WIDTH = 181
-HEIGHT = 181
-
 # How CorelDraw defines a Hairline width
 HAIRLINE = 0.5 #.01
 
@@ -79,7 +75,7 @@ def rectangle(turtle, length, width):
     turtle.forward(width)
 
 def deck_divider():
-    global o, a, notch_top, notch_bottom
+    global o, a, notch_front, notch_back
 
     WIDTH = 2 * o.m + o.h
     HEIGHT = (o.n + 1) * (o.d + o.n + 5)
@@ -88,29 +84,38 @@ def deck_divider():
     svg.set_viewBox('0 0 %s %s' % (WIDTH, HEIGHT))
 
     s = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
-    s.moveTo(Vector(o.m, 0))
+    s.moveTo(Vector(0, 0))
     s.penDown()
 
     # For N decks, we need N+1 dividers
     for i in range(0, o.n + 1):
-        # Fixme: since we need notches on the bottom, we can't share the
-        # edges
-        s.forward(o.h)
+        # Fixme: since we need notches on the bottom, we can't share the edges
+        # We can fix this by putting unused notches on the top.
+
+        # Top
+        s.forward(o.h + 2 * o.m)
         s.right(90)
 
-        s.forward(notch_top)
-        notchl(s, o.m, TAB)
-        s.forward(notch_bottom)
-
+        # Right
+        s.forward(5)
         s.right(90)
+        s.forward(o.m)
+        s.left(90)
+        s.forward(o.d - 5)
+        s.right(90)
+
+        # Bottom
         s.forward(notch_front)
         notchl(s, o.m, TAB)
         s.forward(notch_back)
-
         s.right(90)
-        s.forward(notch_bottom)
-        notchl(s, o.m, TAB)
-        s.forward(notch_top)
+
+        # Left
+        s.forward(o.d - 5)
+        s.left(90)
+        s.forward(o.m)
+        s.right(90)
+        s.forward(5)
 
         s.penUp()
         s.moveTo(s.getPosition() + Vector(0, o.d + o.m + 5))    # Fixme: adjust the gap between dividers
@@ -150,7 +155,6 @@ def deck_bottom():
     s.forward(o.m + notch_back)
     notchr(s, o.m, TAB)
     s.forward(o.m + notch_front)
-#    s.moveTo(Vector(WIDTH, HEIGHT))
     s.right(90)
 
     #       _____________
@@ -198,7 +202,7 @@ def deck_bottom():
 
 # Fixme: combine this with the bottom piece
 def deck_back():
-    global o, a, notch_top, notch_bottom
+    global o, a
 
     WIDTH = (o.n + 1) * o.m + (o.n * o.w)
     HEIGHT = o.d + o.m
@@ -206,17 +210,24 @@ def deck_back():
     svg.set_viewBox('0 0 %s %s' % (WIDTH, HEIGHT))
 
     s = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
-    s.moveTo(Vector(0, 0))
+    s.moveTo(Vector(o.m, 0))
     s.penDown()
 
     # Top
-    s.forward(WIDTH)
+    s.forward(o.w)
+    for i in range(1, o.n):
+        notchr(s, 5, o.m)
+        s.forward(o.w)
+
+    # Upper-right corner
+    s.right(90)
+    s.forward(5)
+    s.left(90)
+    s.forward(o.m)
     s.right(90)
 
     # Right side
-    s.forward(notch_top)
-    notchr(s, o.m, TAB)
-    s.forward(notch_bottom)
+    s.forward(o.d - 5)
     s.right(90)
 
     # Bottom
@@ -229,25 +240,13 @@ def deck_back():
     s.right(90)
 
     # Left side
-    s.forward(notch_bottom)
-    notchr(s, o.m, TAB)
-    s.forward(notch_top)
+    s.forward(o.d - 5)
 
-    # Notch holes for dividers
-    notch_y = (o.d - TAB) / 2
-    s.penUp()
-    for i in range(1, o.n):
-        s.moveTo(Vector((o.m + o.w) * i, notch_y))
-        s.setOrientation(Vector(1, 0))  # right
-        s.penDown()
-        s.forward(o.m)
-        s.right(90)
-        s.forward(TAB)
-        s.right(90)
-        s.forward(o.m)
-        s.right(90)
-        s.forward(TAB)
-        s.penUp()
+    # Upper-left corner
+    s.right(90)
+    s.forward(o.m)
+    s.left(90)
+    s.forward(5)
 
     s.finish()
     print s.getXML()
@@ -258,7 +257,6 @@ def deck_back():
 
 def deck_front():
     global o, a
-    global notch_top, notch_bottom
 
     WIDTH = (2 * (o.m + 5)) + ((o.n - 1) * (2 * 5 + o.m))
     HEIGHT = o.d + o.m
@@ -266,11 +264,11 @@ def deck_front():
     svg.set_viewBox('0 0 %s %s' % (WIDTH, HEIGHT))
 
     s = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
-    s.moveTo(Vector(0, 0))
+    s.moveTo(Vector(o.m, 0))
     s.penDown()
 
     # Left piece
-    s.forward(o.m + 5)    # Fixme: '5' should be a variable
+    s.forward(5)
     s.right(90)
     s.forward(o.d + o.m)
     s.right(90)
@@ -280,9 +278,11 @@ def deck_front():
     s.left(90)
     s.forward(o.m)
     s.right(90)
-    s.forward(notch_bottom)
-    notchr(s, o.m, TAB)
-    s.forward(notch_top)
+    s.forward(o.d - 5)
+    s.right(90)
+    s.forward(o.m)
+    s.left(90)
+    s.forward(5)    # Fixme: '5' should be a variable
 
     # Move to upper-left corner of first middle piece
     s.penUp()
@@ -291,28 +291,18 @@ def deck_front():
     s.penDown()
 
     for i in range(0, o.n - 1):
-        start_pos = s.getPosition()
-        s.forward(2 * 5 + o.m)    # Fixme: '5' should be a variable
-        next_pos = s.getPosition()  # This is where the next divider is drawn
+        s.forward(5)
+        notchr(s, 5, o.m)
+        s.forward(5)
         s.right(90)
+
+        next_pos = s.getPosition()  # This is where the next divider is drawn
+
         s.forward(o.d + o.m)
         s.right(90)
-        s.forward(5)    # Fixme: '5' should be a variable
-        notchr(s, o.m, o.m)
         s.forward(5)
-
-        # The notch hole for the dividers
-        s.penUp()
-        s.moveTo(start_pos + Vector(5, notch_top))  # Fixme: '5' should be a variable
-        s.setOrientation(Vector(1, 0))  # right
-        s.penDown()
-        s.forward(o.m)
-        s.right(90)
-        s.forward(TAB)
-        s.right(90)
-        s.forward(o.m)
-        s.right(90)
-        s.forward(TAB)
+        notchr(s, 5, o.m)
+        s.forward(5)
 
         s.penUp()
         s.moveTo(next_pos)
@@ -320,17 +310,19 @@ def deck_front():
         s.penDown()
 
     # Right piece
-    s.forward(o.m + 5)    # Fixme: '5' should be a variable
+    s.forward(5)    # Fixme: 5 should be a variable
     s.right(90)
-    s.forward(notch_top)
-    notchr(s, o.m, TAB)
-    s.forward(notch_bottom)
+    s.forward(5)
+    s.left(90)
+    s.forward(o.m)
+    s.right(90)
+    s.forward(o.d - 5)
     s.right(90)
     s.forward(o.m)
     s.left(90)
     s.forward(o.m)
     s.right(90)
-    s.forward(5)        # Fixme: '5' should be a variable
+    s.forward(5)
 
     s.finish()
     print s.getXML()
@@ -354,13 +346,8 @@ parser.add_option("-m", dest="m", help="material thickness (default=%default)",
 
 (o, a) = parser.parse_args()
 
-# Fixme: we should be smarter about limits
-if o.d < 20:
-    o.d = 20
-
-# Calculate the space above and below the notches on the ends of the dividers
-notch_top = (o.d - TAB) / 2
-notch_bottom = o.d - (notch_top + TAB)
+if o.d < 10:
+    o.d = 10
 
 # Calculate the space behind and in front of the notches on the bottoms of
 # the dividers
