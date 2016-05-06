@@ -5,8 +5,8 @@
 
 # Note that CorelDraw's SVG import feature assumes a page size of 8.5 x 11.
 
-# This program requires pysvg (http://codeboje.de/pysvg/).  Only version
-# 0.2.2 is supported, which can be downloaded from
+# This program requires pysvg (http://codeboje.de/pysvg/), version 0.2.2
+# or version 0.2.2b, which can be downloaded from
 # https://pypi.python.org/pypi/pysvg
 
 # Copyright 2013-2014 Timur Tabi
@@ -32,8 +32,6 @@
 # arising in any way out of the use of this software, even if advised of
 # the possibility of such damage.
 
-import sys
-import os
 import pysvg.structure
 from pysvg.turtle import Turtle, Vector
 from optparse import OptionParser
@@ -44,292 +42,301 @@ HAIRLINE = 0.5 #.01
 # The width of the tabs
 TAB = 10
 
+class DeckSVG(object):
+    def __init__(self, width, height, filename, start = Vector(0, 0)):
+        self.t = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
+        self.width = width
+        self.height = height
+        self.filename = filename
+        self.t.moveTo(start)
+        self.t.setOrientation(Vector(1, 0))
+        self.t.penDown()
 
-# A notch (rectangle with only three sides) starting from (x,y)
-def notchl(turtle, width, height):
-    turtle.left(90)
-    turtle.forward(width)
-    turtle.right(90)
-    turtle.forward(height)
-    turtle.right(90)
-    turtle.forward(width)
-    turtle.left(90)
+    def __enter__(self):
+        return self
 
-# A notch (rectangle with only three sides) starting from (x,y)
-def notchr(turtle, width, height):
-    turtle.right(90)
-    turtle.forward(width)
-    turtle.left(90)
-    turtle.forward(height)
-    turtle.left(90)
-    turtle.forward(width)
-    turtle.right(90)
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.t.finish()
+        print self.t.getXML()
 
-def rectangle(turtle, length, width):
-    turtle.forward(length)
-    turtle.right(90)
-    turtle.forward(width)
-    turtle.right(90)
-    turtle.forward(length)
-    turtle.right(90)
-    turtle.forward(width)
+        # Some versions of pysvg have ".Svg" and some have ".svg", so just
+        # try one at a time until it works.
+        try:
+            self.svg = pysvg.structure.Svg(width='%smm' % self.width, height='%smm' % self.height)
+        except AttributeError:
+            self.svg = pysvg.structure.svg(width='%smm' % self.width, height='%smm' % self.height)
+        self.svg.set_viewBox('0 0 %s %s' % (self.width, self.height))
+
+        self.t.addTurtlePathToSVG(self.svg)
+        print 'Saving to %s (size: %umm x %umm)' % (self.filename, self.width, self.height)
+        self.svg.save(self.filename)
+
+    def r(self):
+        self.t.right(90)
+
+    def l(self):
+        self.t.left(90)
+
+    def f(self, length):
+        self.t.forward(length)
+
+    def v(self, x, y):
+        return Vector(x, y)
+
+    def here(self):
+        return self.t.getPosition()
+
+    def up(self):
+        self.t.penUp();
+
+    def down(self):
+        self.t.penDown();
+
+    # Move to a specific position
+    def move(self, x, y):
+        self.t.moveTo(Vector(x, y))
+
+    # Move relative to the current position
+    def shift(self, x, y):
+        self.t.moveTo(self.t.getPosition() + Vector(x, y))
+
+    def east(self):
+        self.t.setOrientation(Vector(1, 0))
+
+    def north(self):
+        self.t.setOrientation(Vector(0, -1))
+
+    def west(self):
+        self.t.setOrientation(Vector(-1, 0))
+
+    def south(self):
+        self.t.setOrientation(Vector(0, 1))
+
+    def notchl(self, width, height):
+        self.t.left(90)
+        self.t.forward(width)
+        self.t.right(90)
+        self.t.forward(height)
+        self.t.right(90)
+        self.t.forward(width)
+        self.t.left(90)
+
+    def notchr(self, width, height):
+        self.t.right(90)
+        self.t.forward(width)
+        self.t.left(90)
+        self.t.forward(height)
+        self.t.left(90)
+        self.t.forward(width)
+        self.t.right(90)
+
+    def rectangle(self, length, width):
+        self.t.forward(length)
+        self.t.right(90)
+        self.t.forward(width)
+        self.t.right(90)
+        self.t.forward(length)
+        self.t.right(90)
+        self.t.forward(width)
 
 def deck_divider():
     global o, a, notch_front, notch_back
 
-    WIDTH = 2 * o.m + o.h
-    HEIGHT = (o.n + 1) * (o.d + o.n + 5)
+    with DeckSVG(2 * o.m + o.h, (o.n + 1) * (o.d + o.n + 5), 'tray_divider.svg') as t:
+        # For N decks, we need N+1 dividers
+        for i in range(0, o.n + 1):
+            # Fixme: since we need notches on the bottom, we can't share the edges
+            # We can fix this by putting unused notches on the top.
 
-    svg = pysvg.structure.Svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
-    svg.set_viewBox('0 0 %s %s' % (WIDTH, HEIGHT))
+            # Top
+            t.f(o.h + 2 * o.m)
+            t.r()
 
-    s = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
-    s.moveTo(Vector(0, 0))
-    s.penDown()
+            # Right
+            t.f(5)
+            t.r()
+            t.f(o.m)
+            t.l()
+            t.f(o.d - 5)
+            t.r()
 
-    # For N decks, we need N+1 dividers
-    for i in range(0, o.n + 1):
-        # Fixme: since we need notches on the bottom, we can't share the edges
-        # We can fix this by putting unused notches on the top.
+            # Bottom
+            t.f(notch_front)
+            t.notchl(o.m, TAB)
+            t.f(notch_back)
+            t.r()
 
-        # Top
-        s.forward(o.h + 2 * o.m)
-        s.right(90)
+            # Left
+            t.f(o.d - 5)
+            t.l()
+            t.f(o.m)
+            t.r()
+            t.f(5)
 
-        # Right
-        s.forward(5)
-        s.right(90)
-        s.forward(o.m)
-        s.left(90)
-        s.forward(o.d - 5)
-        s.right(90)
-
-        # Bottom
-        s.forward(notch_front)
-        notchl(s, o.m, TAB)
-        s.forward(notch_back)
-        s.right(90)
-
-        # Left
-        s.forward(o.d - 5)
-        s.left(90)
-        s.forward(o.m)
-        s.right(90)
-        s.forward(5)
-
-        s.penUp()
-        s.moveTo(s.getPosition() + Vector(0, o.d + o.m + 5))    # Fixme: adjust the gap between dividers
-        s.setOrientation(Vector(1, 0))  # right
-        s.penDown()
-
-    s.finish()
-    print s.getXML()
-    s=s.addTurtlePathToSVG(svg)
-
-    print 'Dividers size: %smm * %smm' % (WIDTH, HEIGHT)
-    svg.save('tray_divider.svg')
+            # Move to next divider
+            t.up()
+            t.shift(0, o.d + o.m + 5)    # Fixme: adjust the gap between dividers
+            t.east()
+            t.down()
 
 def deck_bottom():
     global o, a
     global notch_back, notch_front
 
     WIDTH = (o.n + 1) * o.m + (o.n * o.w)
-    HEIGHT = (2 * o.m) + o.h
-    svg = pysvg.structure.Svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
-    svg.set_viewBox('0 0 %s %s' % (WIDTH, HEIGHT))
 
-    s = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
-    s.moveTo(Vector(0, 0))
-    s.penDown()
+    with DeckSVG(WIDTH, (2 * o.m) + o.h, 'tray_bottom.svg') as t:
+        # Back
+        for i in range(0, o.n):
+            pos = t.here()
+            t.f(o.m + (o.w / 2) - (TAB / 2))
+            t.notchr(o.m, TAB)
+            t.t.moveTo(pos + Vector(o.w + o.m, 0))
+        t.move(WIDTH, pos.y)
+        t.r()
 
-    # Back
-    for i in range(0, o.n):
-        pos = s.getPosition()
-        s.forward(o.m + (o.w / 2) - (TAB / 2))
-        notchr(s, o.m, TAB)
-        s.moveTo(pos + Vector(o.w + o.m, 0))
-    s.moveTo(Vector(WIDTH, pos.y))
-    s.right(90)
+        # Right side
+        t.f(o.m + notch_back)
+        t.notchr(o.m, TAB)
+        t.f(o.m + notch_front)
+        t.r()
 
-    # Right side
-    s.forward(o.m + notch_back)
-    notchr(s, o.m, TAB)
-    s.forward(o.m + notch_front)
-    s.right(90)
+        #       _____________
+        #      |             |
+        #    __|             |__
+        # __|                   |__
+        width = o.w - (2 * 5.0)     # finger notch width    # Fixme: '5' should be a variable
+        for i in range(0, o.n):
+            t.f(o.m)
+            t.r()
+            t.f(o.m)
+            t.l()
+            t.f(5)    # Fixme: '5' should be a variable
 
-    #       _____________
-    #      |             |
-    #    __|             |__
-    # __|                   |__
-    width = o.w - (2 * 5.0)     # finger notch width    # Fixme: '5' should be a variable
-    for i in range(0, o.n):
-        s.forward(o.m)
-        s.right(90)
-        s.forward(o.m)
-        s.left(90)
-        s.forward(5)    # Fixme: '5' should be a variable
+            t.notchr(10, width)
 
-        notchr(s, 10, width)
+            t.f(5)    # Fixme: '5' should be a variable
+            t.l()
+            t.f(o.m)
+            t.r()
+        t.f(o.m)
+        t.r()
 
-        s.forward(5)    # Fixme: '5' should be a variable
-        s.left(90)
-        s.forward(o.m)
-        s.right(90)
-    s.forward(o.m)
-    s.right(90)
+        # Left side
+        t.f(o.m + notch_front)
+        t.notchr(o.m, TAB)
+        t.f(o.m + notch_back)
+        t.up()
 
-    # Left side
-    s.forward(o.m + notch_front)
-    notchr(s, o.m, TAB)
-    s.forward(o.m + notch_back)
-    s.penUp()
-
-    # Notch holes for dividers
-    s.penUp()
-    for i in range(1, o.n):
-        s.moveTo(Vector((o.m + o.w) * i, o.m + notch_back))
-        s.setOrientation(Vector(1, 0))  # right
-        s.penDown()
-        rectangle(s, o.m, TAB)
-        s.penUp()
-
-    s.finish()
-    print s.getXML()
-    s=s.addTurtlePathToSVG(svg)
-
-    print 'Bottom size: %smm * %smm' % (WIDTH, HEIGHT)
-    svg.save('tray_bottom.svg')
+        # Notch holes for dividers
+        t.up()
+        for i in range(1, o.n):
+            t.move((o.m + o.w) * i, o.m + notch_back)
+            t.east()  # right
+            t.down()
+            t.rectangle(o.m, TAB)
+            t.up()
 
 # Fixme: combine this with the bottom piece
 def deck_back():
     global o, a
 
-    WIDTH = (o.n + 1) * o.m + (o.n * o.w)
-    HEIGHT = o.d + o.m
-    svg = pysvg.structure.Svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
-    svg.set_viewBox('0 0 %s %s' % (WIDTH, HEIGHT))
+    with DeckSVG((o.n + 1) * o.m + (o.n * o.w), o.d + o.m, 'tray_back.svg', start = Vector(o.m, 0)) as t:
+        # Top
+        t.f(o.w)
+        for i in range(1, o.n):
+            t.notchr(5, o.m)
+            t.f(o.w)
 
-    s = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
-    s.moveTo(Vector(o.m, 0))
-    s.penDown()
+        # Upper-right corner
+        t.r()
+        t.f(5)
+        t.l()
+        t.f(o.m)
+        t.r()
 
-    # Top
-    s.forward(o.w)
-    for i in range(1, o.n):
-        notchr(s, 5, o.m)
-        s.forward(o.w)
+        # Right side
+        t.f(o.d - 5)
+        t.r()
 
-    # Upper-right corner
-    s.right(90)
-    s.forward(5)
-    s.left(90)
-    s.forward(o.m)
-    s.right(90)
+        # Bottom
+        for i in range(0, o.n):
+            pos = t.here()
+            t.f(o.m + (o.w / 2) - (TAB / 2))
+            t.notchl(o.m, TAB)
+            t.t.moveTo(pos - Vector(o.w + o.m, 0))
+        t.move(0, pos.y)
+        t.r()
 
-    # Right side
-    s.forward(o.d - 5)
-    s.right(90)
+        # Left side
+        t.f(o.d - 5)
 
-    # Bottom
-    for i in range(0, o.n):
-        pos = s.getPosition()
-        s.forward(o.m + (o.w / 2) - (TAB / 2))
-        notchl(s, o.m, TAB)
-        s.moveTo(pos - Vector(o.w + o.m, 0))
-    s.moveTo(Vector(0, pos.y))
-    s.right(90)
-
-    # Left side
-    s.forward(o.d - 5)
-
-    # Upper-left corner
-    s.right(90)
-    s.forward(o.m)
-    s.left(90)
-    s.forward(5)
-
-    s.finish()
-    print s.getXML()
-    s=s.addTurtlePathToSVG(svg)
-
-    print 'Back size: %smm * %smm' % (WIDTH, HEIGHT)
-    svg.save('tray_back.svg')
+        # Upper-left corner
+        t.r()
+        t.f(o.m)
+        t.l()
+        t.f(5)
 
 def deck_front():
     global o, a
 
-    WIDTH = (2 * (o.m + 5)) + ((o.n - 1) * (2 * 5 + o.m))
-    HEIGHT = o.d + o.m
-    svg = pysvg.structure.Svg(width='%smm' % WIDTH, height='%smm' % HEIGHT)
-    svg.set_viewBox('0 0 %s %s' % (WIDTH, HEIGHT))
+    with DeckSVG((2 * (o.m + 5)) + ((o.n - 1) * (2 * 5 + o.m)), o.d + o.m, 'tray_front.svg', start = Vector(o.m, 0)) as t:
+        # Left piece
+        t.f(5)
+        t.r()
+        t.f(o.d + o.m)
+        t.r()
+        t.f(5)    # Fixme: '5' should be a variable
+        t.r()
+        t.f(o.m)
+        t.l()
+        t.f(o.m)
+        t.r()
+        t.f(o.d - 5)
+        t.r()
+        t.f(o.m)
+        t.l()
+        t.f(5)    # Fixme: '5' should be a variable
 
-    s = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
-    s.moveTo(Vector(o.m, 0))
-    s.penDown()
+        # Move to upper-left corner of first middle piece
+        t.up()
+        t.move(o.m + 5, 0)    # Fixme: '5' should be a variable
+        t.east()
+        t.down()
 
-    # Left piece
-    s.forward(5)
-    s.right(90)
-    s.forward(o.d + o.m)
-    s.right(90)
-    s.forward(5)    # Fixme: '5' should be a variable
-    s.right(90)
-    s.forward(o.m)
-    s.left(90)
-    s.forward(o.m)
-    s.right(90)
-    s.forward(o.d - 5)
-    s.right(90)
-    s.forward(o.m)
-    s.left(90)
-    s.forward(5)    # Fixme: '5' should be a variable
+        for i in range(0, o.n - 1):
+            t.f(5)
+            t.notchr(5, o.m)    # Top notch
+            t.f(5)
+            t.r()
 
-    # Move to upper-left corner of first middle piece
-    s.penUp()
-    s.moveTo(Vector(o.m + 5, 0))    # Fixme: '5' should be a variable
-    s.setOrientation(Vector(1, 0))  # right
-    s.penDown()
+            next_pos = t.here()  # This is where the next divider is drawn
 
-    for i in range(0, o.n - 1):
-        s.forward(5)
-        notchr(s, 5, o.m)
-        s.forward(5)
-        s.right(90)
+            t.f(o.d + o.m)
+            t.r()
+            t.f(5)
+            t.notchr(5, o.m)    # Bottom notch
+            t.f(5)
 
-        next_pos = s.getPosition()  # This is where the next divider is drawn
+            t.up()
+            t.t.moveTo(next_pos)
+            t.east()  # right
+            t.down()
 
-        s.forward(o.d + o.m)
-        s.right(90)
-        s.forward(5)
-        notchr(s, 5, o.m)
-        s.forward(5)
-
-        s.penUp()
-        s.moveTo(next_pos)
-        s.setOrientation(Vector(1, 0))  # right
-        s.penDown()
-
-    # Right piece
-    s.forward(5)    # Fixme: 5 should be a variable
-    s.right(90)
-    s.forward(5)
-    s.left(90)
-    s.forward(o.m)
-    s.right(90)
-    s.forward(o.d - 5)
-    s.right(90)
-    s.forward(o.m)
-    s.left(90)
-    s.forward(o.m)
-    s.right(90)
-    s.forward(5)
-
-    s.finish()
-    print s.getXML()
-    s = s.addTurtlePathToSVG(svg)
-
-    print 'Front size: %smm * %smm' % (WIDTH, HEIGHT)
-    svg.save('tray_front.svg')
+        # Right piece
+        t.f(5)    # Fixme: 5 should be a variable
+        t.r()
+        t.f(5)
+        t.l()
+        t.f(o.m)
+        t.r()
+        t.f(o.d - 5)
+        t.r()
+        t.f(o.m)
+        t.l()
+        t.f(o.m)
+        t.r()
+        t.f(5)
 
 # Defaults for Dominion Victory cards
 parser = OptionParser(usage="usage: %prog [options]")
@@ -346,6 +353,7 @@ parser.add_option("-m", dest="m", help="material thickness (default=%default)",
 
 (o, a) = parser.parse_args()
 
+# We need to restrict the deck thickness so that the notches are drawn correctly
 if o.d < 10:
     o.d = 10
 
@@ -358,7 +366,3 @@ deck_divider()
 deck_bottom()
 deck_back()
 deck_front()
-
-# The deck dividers (and left/right sides)
-# Start with the upper-left corner and draw clockwise
-

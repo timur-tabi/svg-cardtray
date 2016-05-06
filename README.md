@@ -3,7 +3,7 @@ a board game card tray.  You specify the dimensions of the cards and the
 thickness of the largest deck, and it will generate a pattern in SVG
 format.
 
-This program requires the pysvg 0.2.2 module from
+This program requires the pysvg module from
 https://pypi.python.org/pypi/pysvg.
 
 -------------------------------------------------------------------------------
@@ -14,10 +14,8 @@ INSTALLATION
    MSI installer is the easiest way.  You can install Python just for
    yourself, or for all users.
 
-2. Download version pysvg from https://pypi.python.org/pypi/pysvg/0.2.2
-   Only version 0.2.2 is supported, not 0.2.1 and not 0.2.2b.  In 0.2.2b,
-   the capitalization of some of the pysvg modules was changed, and the
-   script does not handle that.
+2. Download version pysvg from https://pypi.python.org/pypi/pysvg/
+   Either version 0.2.2 or 0.2.2b is supported.
 
 3. Extract the zip file into a directory.  Open a Command Prompt and cd
    to that directory.  Then type in this:
