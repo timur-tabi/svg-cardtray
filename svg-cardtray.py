@@ -304,6 +304,10 @@ def deck_front():
         t.east()
         t.down()
 
+        # H-shaped front pieces          ___   ___
+        #                               |   |_|   |
+        #                               |    _    |
+        #                               |___| |___|
         for i in range(0, o.n - 1):
             t.f(5)
             t.notchr(5, o.m)    # Top notch
@@ -315,7 +319,7 @@ def deck_front():
             t.f(o.d + o.m)
             t.r()
             t.f(5)
-            t.notchr(5, o.m)    # Bottom notch
+            t.notchr(o.m, o.m)    # Bottom notch
             t.f(5)
 
             t.up()
