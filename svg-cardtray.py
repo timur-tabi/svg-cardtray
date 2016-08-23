@@ -44,7 +44,9 @@ TAB = 10
 
 class DeckSVG(object):
     def __init__(self, width, height, filename, start = Vector(0, 0)):
-        self.t = Turtle(stroke='blue', strokeWidth=str(HAIRLINE))
+        global o, a
+
+        self.t = Turtle(stroke=o.color, strokeWidth=str(HAIRLINE))
         self.width = width
         self.height = height
         self.filename = filename
@@ -354,6 +356,8 @@ parser.add_option("-n", dest="n", help="number of decks (default=%default)",
                   type="int", default = 5)
 parser.add_option("-m", dest="m", help="material thickness (default=%default)",
                   type="float", default = 3)
+parser.add_option('-c', dest='color', help='drawing color (default=%default)',
+                  type='string', default = 'red')
 
 (o, a) = parser.parse_args()
 
