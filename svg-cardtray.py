@@ -37,7 +37,7 @@ from pysvg.turtle import Turtle, Vector
 from optparse import OptionParser
 
 # How CorelDraw defines a Hairline width
-HAIRLINE = 0.5 #.01
+HAIRLINE = 0.01
 
 # The width of the tabs
 TAB = 10
@@ -46,7 +46,7 @@ class DeckSVG(object):
     def __init__(self, width, height, filename, start = Vector(0, 0)):
         global o, a
 
-        self.t = Turtle(stroke=o.color, strokeWidth=str(HAIRLINE))
+        self.t = Turtle(stroke=o.color, strokeWidth=str(o.line))
         self.width = width
         self.height = height
         self.filename = filename
@@ -358,6 +358,8 @@ parser.add_option("-m", dest="m", help="material thickness (default=%default)",
                   type="float", default = 3)
 parser.add_option('-c', dest='color', help='drawing color (default=%default)',
                   type='string', default = 'red')
+parser.add_option('-l', dest='line', help='line width (default=%default)',
+                  type='float', default = HAIRLINE)
 
 (o, a) = parser.parse_args()
 
