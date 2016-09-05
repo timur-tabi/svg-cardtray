@@ -89,10 +89,10 @@ class DeckSVG(object):
         return self.t.getPosition()
 
     def up(self):
-        self.t.penUp();
+        self.t.penUp()
 
     def down(self):
-        self.t.penDown();
+        self.t.penDown()
 
     # Move to a specific position
     def move(self, x, y):
@@ -101,6 +101,14 @@ class DeckSVG(object):
     # Move relative to the current position
     def shift(self, x, y):
         self.t.moveTo(self.t.getPosition() + Vector(x, y))
+
+    # Move to a specific position without drawing
+    def relocate(self, x = 0, y = 0, v = None):
+        if not v:
+            v = Vector(x, y)
+        self.t.penUp()
+        self.t.moveTo(v)
+        self.t.penDown()
 
     def east(self):
         self.t.setOrientation(Vector(1, 0))
