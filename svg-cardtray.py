@@ -95,12 +95,16 @@ class DeckSVG(object):
         self.t.penDown()
 
     # Move to a specific position
-    def move(self, x, y):
-        self.t.moveTo(Vector(x, y))
+    def move(self, x = 0, y = 0, v = None):
+        if not v:
+            v = Vector(x, y)
+        self.t.moveTo(v)
 
     # Move relative to the current position
-    def shift(self, x, y):
-        self.t.moveTo(self.t.getPosition() + Vector(x, y))
+    def shift(self, x = 0, y = 0, v = None):
+        if not v:
+            v = Vector(x, y)
+        self.t.moveTo(self.t.getPosition() + v)
 
     # Move to a specific position without drawing
     def relocate(self, x = 0, y = 0, v = None):
