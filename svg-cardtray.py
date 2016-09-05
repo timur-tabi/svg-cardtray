@@ -73,11 +73,19 @@ class DeckSVG(object):
         print 'Saving to %s (size: %umm x %umm)' % (self.filename, self.width, self.height)
         self.svg.save(self.filename)
 
-    def r(self):
+    def r(self, before = None, after = None):
+        if before:
+            self.t.forward(before)
         self.t.right(90)
+        if after:
+            self.t.forward(after)
 
-    def l(self):
+    def l(self, before = None, after = None):
+        if before:
+            self.t.forward(before)
         self.t.left(90)
+        if after:
+            self.t.forward(after)
 
     def f(self, length):
         self.t.forward(length)
