@@ -32,6 +32,7 @@
 # arising in any way out of the use of this software, even if advised of
 # the possibility of such damage.
 
+import math
 import pysvg.structure
 from pysvg.turtle import Turtle, Vector
 from optparse import OptionParser
@@ -47,8 +48,8 @@ class DeckSVG(object):
         global o, a
 
         self.t = Turtle(stroke=o.color, strokeWidth=str(o.line))
-        self.width = width
-        self.height = height
+        self.width = int(math.ceil(width))
+        self.height = int(math.ceil(height))
         self.filename = filename
         self.t.moveTo(start)
         self.t.setOrientation(Vector(1, 0))
