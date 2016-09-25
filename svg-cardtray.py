@@ -43,6 +43,10 @@ HAIRLINE = 0.01
 # The width of the tabs
 TAB = 10
 
+# Returns True if the number is even
+def is_even(number):
+    return number % 2 == 0
+
 class DeckSVG(object):
     def __init__(self, width, height, filename, start = Vector(0, 0)):
         global o, a
@@ -162,91 +166,144 @@ class DeckSVG(object):
         self.t.right(90)
         self.t.forward(width)
 
+# Draw a single divider.  If short==True, then make it a short divider for
+# the left and right sides.
+def deck_tabbed_divider(t, short):
+    global o, a, notch_front, notch_back
+
+    # The amount the bottom is inset (from the bottom of the card) for
+    # even-numbered trays.
+    INSET = 15
+
+    # Top
+    t.east()
+    if short:
+        t.f(o.m + o.h - INSET)
+    else:
+        t.f(o.m + o.h + o.m)
+    t.r()
+
+    # Right
+    if short:
+        t.f(o.d)
+        t.r()
+#        t.f(o.m)
+    else:
+        t.f(5)
+        t.r()
+        t.f(o.m)
+        t.l()
+        t.f(o.d - 5)
+        t.r()
+
+    # Bottom
+    if short:
+        t.f(notch_front - INSET)
+    else:
+        t.f(notch_front)
+    t.notchl(o.m, TAB)
+    t.f(notch_back)
+    t.r()
+
+    # Left
+    t.f(o.d - 5)
+    t.l()
+    t.f(o.m)
+    t.r()
+    t.f(5)
+
+
 def deck_divider():
     global o, a, notch_front, notch_back
 
-    with DeckSVG(2 * o.m + o.h, (o.n + 1) * (o.d + o.n + 5), 'tray_divider.svg') as t:
+    gap = 5
+
+    with DeckSVG(2 * o.m + o.h, (o.n + 1) * (o.d + o.n + gap), 'tray_divider.svg') as t:
         # For N decks, we need N+1 dividers
+        # If N is odd, then they are all long dividers
+        # If N is even, then (N + 1) / are short, the rest are long
         for i in range(0, o.n + 1):
-            # Fixme: since we need notches on the bottom, we can't share the edges
-            # We can fix this by putting unused notches on the top.
-
-            # Top
-            t.f(o.h + 2 * o.m)
-            t.r()
-
-            # Right
-            t.f(5)
-            t.r()
-            t.f(o.m)
-            t.l()
-            t.f(o.d - 5)
-            t.r()
-
-            # Bottom
-            t.f(notch_front)
-            t.notchl(o.m, TAB)
-            t.f(notch_back)
-            t.r()
-
-            # Left
-            t.f(o.d - 5)
-            t.l()
-            t.f(o.m)
-            t.r()
-            t.f(5)
+            here = t.here()
+            if is_even(o.n):
+                deck_tabbed_divider(t, is_even(i))
+            else:
+                deck_tabbed_divider(t, False)
 
             # Move to next divider
-            t.up()
-            t.shift(0, o.d + o.m + 5)    # Fixme: adjust the gap between dividers
-            t.east()
-            t.down()
+            t.relocate(v = here + Vector(0, o.d + o.m + gap))
 
+# If it's even, then we want front tabs only on every other internal
+# divider (i.e. not the edges)
 def deck_bottom():
     global o, a
     global notch_back, notch_front
 
-    WIDTH = (o.n + 1) * o.m + (o.n * o.w)
+    # Needs to match value in deck_front_even()
+    width = o.w / 3
 
-    with DeckSVG(WIDTH, (2 * o.m) + o.h, 'tray_bottom.svg') as t:
+    # The amount the bottom is inset for even-numbered trays
+    INSET = 15
+
+    with DeckSVG((o.n + 1) * o.m + (o.n * o.w), (2 * o.m) + o.h, 'tray_bottom.svg') as t:
         # Back
         for i in range(0, o.n):
             pos = t.here()
             t.f(o.m + (o.w / 2) - (TAB / 2))
             t.notchr(o.m, TAB)
-            t.t.moveTo(pos + Vector(o.w + o.m, 0))
-        t.move(WIDTH, pos.y)
+            t.move(v = pos + Vector(o.w + o.m, 0))
+        t.f(o.m)
         t.r()
 
         # Right side
         t.f(o.m + notch_back)
         t.notchr(o.m, TAB)
-        t.f(o.m + notch_front)
+        if is_even(o.n):
+            t.f(notch_front - INSET)
+        else:
+            t.f(o.m + notch_front)
         t.r()
 
-        #       _____________
-        #      |             |
-        #    __|             |__
-        # __|                   |__
-        width = o.w - (2 * 5.0)     # finger notch width    # Fixme: '5' should be a variable
-        for i in range(0, o.n):
+        if is_even(o.n):
+            for i in range(0, o.n / 2):
+                t.f(o.m + o.w - width)
+                t.l()
+                t.f(INSET)
+                t.r()
+                t.f(width)
+                t.notchl(o.m, o.m)
+                t.f(width)
+                t.r()
+                t.f(INSET)
+                t.l()
+                t.f(o.w - width)
             t.f(o.m)
-            t.r()
-            t.f(o.m)
-            t.l()
-            t.f(5)    # Fixme: '5' should be a variable
+        else:
+            #       _____________
+            #      |             |
+            #    __|             |__
+            # __|                   |__
+            width = o.w - (2 * 5.0)     # finger notch width    # Fixme: '5' should be a variable
+            for i in range(0, o.n):
+                t.f(o.m)
+                t.r()
+                t.f(o.m)
+                t.l()
+                t.f(5)    # Fixme: '5' should be a variable
 
-            t.notchr(10, width)
+                t.notchr(10, width)
 
-            t.f(5)    # Fixme: '5' should be a variable
-            t.l()
+                t.f(5)    # Fixme: '5' should be a variable
+                t.l()
+                t.f(o.m)
+                t.r()
             t.f(o.m)
-            t.r()
-        t.f(o.m)
-        t.r()
 
         # Left side
-        t.f(o.m + notch_front)
+        t.r()
+        if is_even(o.n):
+            t.f(notch_front - INSET)
+        else:
+            t.f(o.m + notch_front)
         t.notchr(o.m, TAB)
         t.f(o.m + notch_back)
         t.up()
@@ -300,70 +357,151 @@ def deck_back():
         t.l()
         t.f(5)
 
-def deck_front():
+# Make a single front tab for the left edge
+#     ___
+#   _|   |
+#  |_    |
+#    |___|
+def deck_front_tab_left(t, width):
     global o, a
 
-    with DeckSVG((2 * (o.m + 5)) + ((o.n - 1) * (2 * 5 + o.m)), o.d + o.m, 'tray_front.svg', start = Vector(o.m, 0)) as t:
-        # Left piece
-        t.f(5)
-        t.r()
-        t.f(o.d + o.m)
-        t.r()
-        t.f(5)    # Fixme: '5' should be a variable
-        t.r()
-        t.f(o.m)
-        t.l()
-        t.f(o.m)
-        t.r()
-        t.f(o.d - 5)
-        t.r()
-        t.f(o.m)
-        t.l()
-        t.f(5)    # Fixme: '5' should be a variable
+    # Top side
+    t.relocate(0, 5)
 
-        # Move to upper-left corner of first middle piece
-        t.up()
-        t.move(o.m + 5, 0)    # Fixme: '5' should be a variable
-        t.east()
-        t.down()
+    t.east()
+    t.f(o.m)
 
-        # H-shaped front pieces          ___   ___
-        #                               |   |_|   |
-        #                               |    _    |
-        #                               |___| |___|
+    t.l()
+    t.f(5)
+    t.r()
+    t.f(width)
+    t.r()
+
+    # Right side
+    t.f(o.d + o.m)
+    t.r()
+
+    # Bottom side
+    t.f(width)
+    t.r()
+    t.f(o.m)
+    t.l()
+
+    t.f(o.m)
+    t.r()
+    t.f(o.d - 5)
+
+# Make a single front tab for the right edge
+#   ___
+#  |   |_
+#  |    _|
+#  |___|
+def deck_front_tab_right(t, width):
+    global o, a
+
+    # Top side
+    t.east()
+    t.f(width)
+    t.r()
+
+    # Right side
+    t.f(5)
+    t.l()
+    t.f(o.m)
+
+    t.r()
+    t.f(o.d - 5)
+    t.r()
+
+    t.f(o.m)
+
+    t.l()
+    t.f(o.m)
+    t.r()
+    t.f(width)
+    t.r()
+
+    # Left side
+    t.f(o.d + o.m)
+
+
+# Make a single front tab, with different left and right lengths
+#   ___   ___
+#  |   |_|   |
+#  |    _    |
+#  |___| |___|
+def deck_front_tab(t, left, right):
+    global o, a
+
+    t.east()
+
+    # Top side
+    t.f(left)
+    t.notchr(5, o.m)
+    t.f(right)
+    t.r()
+
+    # Right side
+    t.f(o.d + o.m)
+    t.r()
+
+    # Bottom side
+    t.f(right)
+    t.notchr(o.m, o.m)
+    t.f(left)
+    t.r()
+
+    # Left side
+    t.f(o.d + o.m)
+
+# Make all the front tabs, if there are an even number of tabs
+#
+# If there are an even number of decks, then we can eliminate half
+# of the tabs by making each other tab twice as wide.
+def deck_front_even():
+    global o, a
+
+    # Needs to match value in deck_bottom()
+    width = o.w / 3
+    gap = 5
+    count = o.n / 2
+
+    with DeckSVG(count * (2 * width + o.m) + (count - 1) * gap, o.d + o.m, 'tray_front.svg') as t:
+        for i in range(0, count):
+            here = t.here()
+            deck_front_tab(t, width, width)
+            t.relocate(v = here + Vector(2 * width + o.m + gap, 0)) # This is where the next divider is drawn
+
+# Make all the front tabs, if there are an odd number of tabs
+#
+# However, if the number of tabs is odd, then it becomes really
+# messy.  For now, do it the traditional way
+def deck_front_odd():
+    global o, a
+
+    width = 5
+    gap = 5
+
+    with DeckSVG(2 * (o.m + width) + (o.n - 1) * (o.m + 2 * width) + (o.n * gap), o.d + o.m, 'tray_front.svg') as t:
+        here = t.here()
+        # Left tab
+        deck_front_tab_left(t, width)
+        t.relocate(v = here + Vector(width + o.m + gap, 0))
+
+        # Middle tabs
         for i in range(0, o.n - 1):
-            t.f(5)
-            t.notchr(5, o.m)    # Top notch
-            t.f(5)
-            t.r()
+            here = t.here()
+            deck_front_tab(t, width, width)
+            t.relocate(v = here + Vector(2 * width + o.m + gap, 0))
 
-            next_pos = t.here()  # This is where the next divider is drawn
+        # Right tab
+        deck_front_tab_right(t, width)
 
-            t.f(o.d + o.m)
-            t.r()
-            t.f(5)
-            t.notchr(o.m, o.m)    # Bottom notch
-            t.f(5)
-
-            t.up()
-            t.t.moveTo(next_pos)
-            t.east()  # right
-            t.down()
-
-        # Right piece
-        t.f(5)    # Fixme: 5 should be a variable
-        t.r()
-        t.f(5)
-        t.l()
-        t.f(o.m)
-        t.r()
-        t.f(o.d - 5)
-        t.r()
-        t.f(o.m)
-        t.l()
-        t.f(o.m)
-        t.r()
-        t.f(5)
+def deck_front():
+    if is_even(o.n):
+        deck_front_even()
+    else:
+        deck_front_odd()
 
 # Defaults for Dominion Victory cards
 parser = OptionParser(usage="usage: %prog [options]")
